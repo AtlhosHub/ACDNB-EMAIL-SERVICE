@@ -9,16 +9,13 @@ import java.util.List;
 public class LerEmailsNaoLidosUseCaseImpl implements LerEmailsNaoLidosUseCase {
 
     private final EmailGateway emailGateway;
-    private final ConectarEmailUseCase conectarEmailUseCase;
 
-    public LerEmailsNaoLidosUseCaseImpl(EmailGateway emailGateway, ConectarEmailUseCase conectarEmailUseCase) {
+    public LerEmailsNaoLidosUseCaseImpl(EmailGateway emailGateway) {
         this.emailGateway = emailGateway;
-        this.conectarEmailUseCase = conectarEmailUseCase;
     }
 
     @Override
-    public List<Message> execute() throws Exception {
-        Store store = conectarEmailUseCase.execute();
+    public List<Message> execute(Store store) throws Exception {
         List<Message> naoLidos = emailGateway.lerEmailsNaoLidos(store);
         emailGateway.marcarComoLidos(naoLidos);
         return naoLidos;

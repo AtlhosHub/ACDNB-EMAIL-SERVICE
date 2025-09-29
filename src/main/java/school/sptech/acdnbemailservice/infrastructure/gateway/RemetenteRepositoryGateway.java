@@ -10,7 +10,7 @@ import org.springframework.web.client.RestTemplate;
 public class RemetenteRepositoryGateway implements RemetenteGateway {
 
     private final RestTemplate restTemplate;
-    private final String baseUrl = "http://aplicacao-principal/api/usuarios";
+    private final String baseUrl = "http://colocarURLDepois/api/usuarios";
 
     public RemetenteRepositoryGateway(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;

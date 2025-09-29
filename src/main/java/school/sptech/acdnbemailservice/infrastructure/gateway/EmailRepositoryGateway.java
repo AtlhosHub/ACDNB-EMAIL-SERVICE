@@ -1,10 +1,15 @@
 package school.sptech.acdnbemailservice.infrastructure.gateway;
 
 import jakarta.mail.*;
+import jakarta.mail.internet.MimeBodyPart;
 import org.springframework.stereotype.Component;
 import school.sptech.acdnbemailservice.core.application.gateway.EmailGateway;
 import school.sptech.acdnbemailservice.infrastructure.security.config.EmailProperties;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -61,5 +66,37 @@ public class EmailRepositoryGateway implements EmailGateway {
         for (Message msg : emails) {
             msg.setFlag(Flags.Flag.SEEN, true);
         }
+    }
+
+    @Override
+    public List<File> extrairAnexos(Message message) throws Exception {
+        List<File> anexos = new ArrayList<>();
+
+        if (message .isMimeType("multipart/*")) {
+            Multipart multipart = (Multipart) message.getContent();
+
+            for (int i = 0; i < multipart.getCount(); i++) {
+                BodyPart bodyPart = multipart.getBodyPart(i);
+
+                if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())
+                        || bodyPart.getFileName() != null) {
+                    MimeBodyPart mimeBodyPart = (MimeBodyPart) bodyPart;
+
+                    File file = File.createTempFile("anexo-", "-" + mimeBodyPart.getFileName());
+                    try (InputStream is = mimeBodyPart.getInputStream();
+                         FileOutputStream fos = new FileOutputStream(file)) {
+                        byte[] buf = new byte[1024];
+                        int bytesRead;
+                        while ((bytesRead = is.read(buf)) != -1) {
+                            fos.write(buf, 0, bytesRead);
+                        }
+                    }
+
+                    anexos.add(file);
+                }
+            }
+        }
+
+        return anexos;
     }
 }
