@@ -57,15 +57,19 @@ public class EmailRepositoryGateway implements EmailGateway {
                 })
                 .collect(Collectors.toList());
 
-        inbox.close(false);
         return naoLidos;
     }
 
     @Override
-    public void marcarComoLidos(List<Message> emails) throws MessagingException {
+    public void marcarComoLidos(Store store, List<Message> emails) throws MessagingException {
+        Folder inbox = store.getFolder("INBOX");
+        inbox.open(Folder.READ_WRITE);
+
         for (Message msg : emails) {
             msg.setFlag(Flags.Flag.SEEN, true);
         }
+
+        inbox.close(false);
     }
 
     @Override

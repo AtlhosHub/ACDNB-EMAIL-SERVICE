@@ -1,5 +1,6 @@
 package school.sptech.acdnbemailservice.core.application.usecase;
 import jakarta.mail.Message;
+import jakarta.mail.internet.InternetAddress;
 import school.sptech.acdnbemailservice.core.application.gateway.RemetenteGateway;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public class ValidarRemetenteUseCaseImpl implements ValidarRemetenteUseCase {
         return emails.stream()
                 .filter(msg -> {
                     try {
-                        String remetente = msg.getFrom()[0].toString();
+                        String remetente = ((InternetAddress) msg.getFrom()[0]).getAddress();
                         return remetenteGateway.existeEmail(remetente);
                     } catch (Exception e) {
                         return false;

@@ -5,31 +5,30 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 import school.sptech.acdnbemailservice.core.application.gateway.RemetenteGateway;
 import org.springframework.web.client.RestTemplate;
+import school.sptech.acdnbemailservice.core.domain.AlunoContato;
+import school.sptech.acdnbemailservice.infrastructure.dto.EmailContatoDTO;
 
 @Component
 public class RemetenteRepositoryGateway implements RemetenteGateway {
 
     private final RestTemplate restTemplate;
-    private final String baseUrl = "http://colocarURLDepois/api/usuarios";
+    private final AlunoContatoRepository repository;
 
-    public RemetenteRepositoryGateway(RestTemplate restTemplate) {
+    public RemetenteRepositoryGateway(RestTemplate restTemplate, AlunoContatoRepository repository) {
         this.restTemplate = restTemplate;
+        this.repository = repository;
     }
 
     @Override
     public boolean existeEmail(String email) {
-        String url = UriComponentsBuilder
-                .fromHttpUrl(baseUrl + "/existe")
-                .queryParam("email", email)
-                .toUriString();
-
-        try {
-            Boolean existe = restTemplate.getForObject(url, Boolean.class);
-            return existe != null && existe;
-        } catch (RestClientException e) {
-            System.err.println("Erro ao verificar remetente: " + e.getMessage());
-            return false;
-        }
+        return repository.existsByEmail(email);
     }
-}
 
+    @Override
+    public void salvarAluno(EmailContatoDTO dto) {
+        AlunoContato aluno = new AlunoContato(dto.getNome(), dto.getEmail());
+        repository.save(aluno);
+        System.out.println("✅ Aluno salvo no banco: " + aluno.getNome());
+    }
+
+}

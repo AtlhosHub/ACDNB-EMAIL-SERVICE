@@ -17,7 +17,7 @@ public class LerEmailsNaoLidosUseCaseImpl implements LerEmailsNaoLidosUseCase {
     @Override
     public List<Message> execute(Store store) throws Exception {
         List<Message> naoLidos = emailGateway.lerEmailsNaoLidos(store);
-        emailGateway.marcarComoLidos(naoLidos);
+        emailGateway.marcarComoLidos(store, naoLidos);
         return naoLidos;
     }
 }

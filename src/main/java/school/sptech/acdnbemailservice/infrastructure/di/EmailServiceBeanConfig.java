@@ -1,5 +1,6 @@
 package school.sptech.acdnbemailservice.infrastructure.di;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import school.sptech.acdnbemailservice.core.application.gateway.EmailGateway;
@@ -40,6 +41,7 @@ public class EmailServiceBeanConfig {
         return new ConverterPdfParaImagemUseCaseImpl();
     }
 
+
     @Bean
     public ConverterListaAnexoUseCase converterListaAnexouseCase(
             ConverterPdfParaImagemUseCase converterPdfParaImagemUseCase
@@ -50,7 +52,7 @@ public class EmailServiceBeanConfig {
 
     @Bean
     public GeminiGateway geminiGateway(ConverterPdfParaImagemUseCase converterPdfParaImagemUseCase) {
-        String apiKey = "AIzaSyCS_Nyk5_7eZE7dceMiZDngNJufOqWtKgI"; //variavel de ambiente?
+        String apiKey = "AIzaSyDKVQSiBNyA0BTAiuBn3wdpEikVnkcsaTk"; //variavel de ambiente?
         try {
             return new GeminiRepositoryGateway(apiKey, converterPdfParaImagemUseCase);
         } catch (IOException e) {
@@ -62,6 +64,21 @@ public class EmailServiceBeanConfig {
     @Bean
     public EnviarArquivoParaGeminiUseCase enviarArquivoParaGeminiUseCase(GeminiGateway geminiGateway) {
         return new EnviarArquivoParaGeminiUseCaseImpl(geminiGateway);
+    }
+
+    @Bean
+    public ProcessarRespostaGeminiUseCase processarRespostaGeminiUseCase(
+            GeminiGateway geminiGateway,
+            ObjectMapper objectMapper
+    ) {
+        return new ProcessarRespostaGeminiUseCaseImpl(geminiGateway, objectMapper);
+    }
+
+    @Bean
+    public ValidarComprovanteUseCase validarComprovanteUseCase() {
+        String destinatarioEsperado = "Walter Teixeira de Camargo";
+        String bancoDestinoEsperado = "Caixa Economica Federal";
+        return new ValidarComprovanteUseCaseImpl(destinatarioEsperado, bancoDestinoEsperado);
     }
 
 }

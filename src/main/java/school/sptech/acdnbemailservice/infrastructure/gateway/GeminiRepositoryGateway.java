@@ -1,5 +1,7 @@
 package school.sptech.acdnbemailservice.infrastructure.gateway;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import school.sptech.acdnbemailservice.core.application.gateway.GeminiGateway;
 import school.sptech.acdnbemailservice.core.application.usecase.ConverterPdfParaImagemUseCase;
 
@@ -27,7 +29,7 @@ public class GeminiRepositoryGateway implements GeminiGateway {
     public GeminiRepositoryGateway(String apiKey, ConverterPdfParaImagemUseCase converter) throws IOException {
         this.apiKey = apiKey;
         this.converterPdfParaImagemUseCase = converter;
-        this.prompt = PromptLoader.carregarPrompt("util/prompts/comprovante_prompt.txt");
+        this.prompt = PromptLoader.carregarPrompt("prompts/comprovante_prompt.txt");
     }
 
     @Override
@@ -48,6 +50,28 @@ public class GeminiRepositoryGateway implements GeminiGateway {
         } finally {
             limparArquivoTemporario(arquivoTemporario);
         }
+    }
+
+    @Override
+    public String limparJson(String respostaGemini) throws Exception {
+
+        String respostaLimpa = respostaGemini
+                .replaceAll("^```json\\s*", "")
+                .replaceAll("\\s*```$", "")
+                .trim();
+
+        int inicio = respostaLimpa.indexOf("{");
+        int fim = respostaLimpa.lastIndexOf("}");
+
+        if (inicio == -1 || fim == -1 || inicio >= fim) {
+            throw new IllegalArgumentException("Resposta do Gemini não contém JSON válido: " + respostaGemini);
+        }
+
+        String jsonBruto = respostaLimpa.substring(inicio, fim + 1);
+
+        JsonElement jsonElement = JsonParser.parseString(jsonBruto);
+
+        return jsonElement.toString();
     }
 
     // ================= Métodos privados =================
