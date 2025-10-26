@@ -19,7 +19,7 @@ public class RabbitMqBeanConfig {
                 rabbitTemplate,
                 objectMapper,
                 "exchange-comprovantes",
-                "fila-comprovantes"
+                "comprovante.processado"
         );
     }
 
@@ -28,3 +28,4 @@ public class RabbitMqBeanConfig {
         return new EnviarParaFilaRabbitUseCaseImpl(rabbitMqGateway);
     }
 }
+
