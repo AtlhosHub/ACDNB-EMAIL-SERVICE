@@ -22,6 +22,7 @@ public class EmailScheduler {
     private final ProcessarRespostaGeminiUseCase processarRespostaGeminiUseCase;
     private final ValidarComprovanteUseCase validarComprovanteUseCase;
     private final EnviarParaFilaRabbitUseCase enviarParaFilaRabbitUseCase;
+    private final AtribuirEmailRemetenteUseCase atribuirEmailRemetenteUseCase;
 
     public EmailScheduler(
             LerEmailsNaoLidosUseCase lerEmailsNaoLidosUseCase,
@@ -32,7 +33,8 @@ public class EmailScheduler {
             EnviarArquivoParaGeminiUseCase enviarArquivoParaGeminiUseCase,
             ProcessarRespostaGeminiUseCase processarRespostaGeminiUseCase,
             ValidarComprovanteUseCase validarComprovanteUseCase,
-            EnviarParaFilaRabbitUseCase enviarParaFilaRabbitUseCase
+            EnviarParaFilaRabbitUseCase enviarParaFilaRabbitUseCase,
+            AtribuirEmailRemetenteUseCase atribuirEmailRemetenteUseCase
     ) {
         this.lerEmailsNaoLidosUseCase = lerEmailsNaoLidosUseCase;
         this.validarRemetenteUseCase = validarRemetenteUseCase;
@@ -43,64 +45,79 @@ public class EmailScheduler {
         this.processarRespostaGeminiUseCase = processarRespostaGeminiUseCase;
         this.validarComprovanteUseCase = validarComprovanteUseCase;
         this.enviarParaFilaRabbitUseCase = enviarParaFilaRabbitUseCase;
+        this.atribuirEmailRemetenteUseCase = atribuirEmailRemetenteUseCase;
     }
 
     @Scheduled(fixedRate = 60000)
     public void processarEmails() {
         try {
-            // 1️⃣ Conectar ao email
+
             Store store = conectarEmailUseCase.execute();
 
-            // 2️⃣ Ler emails não lidos
             List<Message> naoLidos = lerEmailsNaoLidosUseCase.execute(store);
             if (naoLidos.isEmpty()) {
                 System.out.println("📭 Nenhum email não lido encontrado.");
-                return; // encerra o ciclo do scheduler
+                return;
             }
 
-            // 3️⃣ Validar remetente
             List<Message> emailsValidos = validarRemetenteUseCase.execute(naoLidos);
             if (emailsValidos.isEmpty()) {
                 System.out.println("❌ Nenhum remetente válido encontrado.");
                 return;
             }
 
-            // 4️⃣ Extrair anexos
-            List<File> anexos = extrairAnexosUseCase.execute(emailsValidos);
-            if (anexos.isEmpty()) {
-                System.out.println("📎 Nenhum anexo encontrado.");
-                return;
+            for (Message email : emailsValidos) {
+                try {
+                    System.out.println("📧 Processando email: " + email.getSubject());
+
+                    List<File> anexos = extrairAnexosUseCase.execute(List.of(email));
+                    if (anexos.isEmpty()) {
+                        System.out.println("📎 Nenhum anexo encontrado no email: " + email.getSubject());
+                        continue;
+                    }
+                    System.out.println("📎 Anexos encontrados: " + anexos.size());
+
+                    List<File> imagens = converterListaAnexouseCase.execute(anexos);
+                    if (imagens.isEmpty()) {
+                        System.out.println("🖼️ Nenhuma imagem extraída/convertida do email: " + email.getSubject());
+                        continue;
+                    }
+                    System.out.println("🖼️ Imagens processadas: " + imagens.size());
+
+                    for (File imagem : imagens) {
+                        try {
+                            System.out.println("🔍 Processando imagem: " + imagem.getName());
+
+                            String jsonResposta = enviarArquivoParaGeminiUseCase.execute(imagem);
+                            System.out.println("📩 Resposta bruta Gemini recebida");
+
+                            ComprovanteDto dto = processarRespostaGeminiUseCase.execute(jsonResposta);
+                            System.out.println("✅ Comprovante processado:");
+                            System.out.println(dto);
+
+                            dto = atribuirEmailRemetenteUseCase.execute(dto, email);
+                            System.out.println("📧 Email do remetente atribuído: " + dto.getEmailDestinatario());
+
+                            ComprovanteDto comprovanteValido = validarComprovanteUseCase.execute(dto);
+                            System.out.println("✅ Comprovante validado");
+
+                            enviarParaFilaRabbitUseCase.execute(comprovanteValido);
+                            System.out.println("🚀 Comprovante enviado para a fila");
+
+                        } catch (Exception imagemException) {
+                            System.err.println("❌ Erro ao processar imagem " + imagem.getName() + ": " + imagemException.getMessage());
+                            imagemException.printStackTrace();
+                        }
+                    }
+                } catch (Exception emailException) {
+                    System.err.println("❌ Erro ao processar email " + email.getSubject() + ": " + emailException.getMessage());
+                    emailException.printStackTrace();
+                }
             }
 
-            // 5️⃣ Converter PDFs em imagens ou manter imagens originais
-            List<File> imagens = converterListaAnexouseCase.execute(anexos);
-            if (imagens.isEmpty()) {
-                System.out.println("🖼️ Nenhuma imagem extraída/convertida.");
-                return;
-            }
-
-            for (File imagem : imagens) {
-                // 1️⃣ Envia a imagem para o Gemini e recebe a resposta bruta
-                String jsonResposta = enviarArquivoParaGeminiUseCase.execute(imagem);
-
-                System.out.println("📩 Resposta bruta Gemini:");
-                System.out.println(jsonResposta);
-
-                // 2️⃣ Processa a resposta e recebe direto o DTO
-                ComprovanteDto dto = processarRespostaGeminiUseCase.execute(jsonResposta);
-
-                System.out.println("✅ Comprovante processado:");
-                System.out.println(dto);
-
-                // 3️⃣ Valida o DTO
-                ComprovanteDto comprovanteValido = validarComprovanteUseCase.execute(dto);
-
-                // 4️⃣ Envia para a fila
-                enviarParaFilaRabbitUseCase.execute(comprovanteValido);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception globalException) {
+            System.err.println("❌ Erro global no processamento de emails: " + globalException.getMessage());
+            globalException.printStackTrace();
         }
     }
 }

@@ -28,4 +28,3 @@ public class RabbitMqBeanConfig {
         return new EnviarParaFilaRabbitUseCaseImpl(rabbitMqGateway);
     }
 }
-

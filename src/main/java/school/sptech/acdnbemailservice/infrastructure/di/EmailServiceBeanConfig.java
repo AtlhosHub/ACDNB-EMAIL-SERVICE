@@ -81,4 +81,8 @@ public class EmailServiceBeanConfig {
         return new ValidarComprovanteUseCaseImpl(destinatarioEsperado, bancoDestinoEsperado);
     }
 
+    @Bean
+    public AtribuirEmailRemetenteUseCase atribuirEmailRemetenteUseCase() {
+        return new AtribuirEmailRemetenteUseCaseImpl();
+    }
 }

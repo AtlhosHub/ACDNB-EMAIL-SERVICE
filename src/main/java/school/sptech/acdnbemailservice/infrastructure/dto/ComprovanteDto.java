@@ -12,6 +12,7 @@ public class ComprovanteDto {
     private String tipo;
     private String bancoOrigem;
     private String bancoDestino;
+    private String emailDestinatario;
 
     public String getNomeRemetente() {
         return nomeRemetente;
@@ -67,6 +68,14 @@ public class ComprovanteDto {
 
     public void setBancoDestino(String bancoDestino) {
         this.bancoDestino = bancoDestino;
+    }
+
+    public String getEmailDestinatario() {
+        return emailDestinatario;
+    }
+
+    public void setEmailDestinatario(String emailDestinatario) {
+        this.emailDestinatario = emailDestinatario;
     }
 
 }
