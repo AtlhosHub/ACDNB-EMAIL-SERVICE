@@ -1,0 +1,9 @@
+CREATE DATABASE acdnb_email;
+
+USE acdnb_email;
+
+CREATE TABLE aluno_contato(
+ id INT AUTO_INCREMENT PRIMARY KEY,
+ email VARCHAR(100) NOT NULL,
+ nome VARCHAR(240) NOT NULL
+);
