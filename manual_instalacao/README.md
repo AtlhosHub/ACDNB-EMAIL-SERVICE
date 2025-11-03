@@ -43,15 +43,15 @@ Seu principal objetivo é **automatizar o controle de mensalidades**, reduzindo 
 
 ## ⚙️ Requisitos de Instalação
 
-| Requisito | Versão Recomendada |
-|------------|-|
-| **Java JDK** | |
-| **Maven** | |
-| **Spring Boot** | |
-| **RabbitMQ** | |
-| **Docker** | |
-| **MySQL** | |
-| **Git** | |
+| Requisito |
+|-----------|
+| **Java JDK** |
+| **Maven** |
+| **Spring Boot** |
+| **RabbitMQ** |
+| **Docker** |
+| **MySQL** |
+| **Git**  |
 
 ---
 
