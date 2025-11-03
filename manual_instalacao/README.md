@@ -77,3 +77,20 @@ spring.datasource.url=jdbc:mysql://localhost:3307/acdnb_email?allowPublicKeyRetr
 spring.datasource.username=user
 spring.datasource.password=user123
 spring.jpa.hibernate.ddl-auto=update
+
+## 🧰 Execução do Serviço
+
+### 🐇 Subir o RabbitMQ (via Docker)
+
+Para executar o RabbitMQ localmente, utilize o comando abaixo:
+
+```bash
+docker run -d --hostname rabbitmq --name rabbitmq \
+-p 5672:5672 -p 15672:15672 rabbitmq:management
+
+## ▶️ Rodar o serviço
+
+Na raiz do projeto, execute os comandos abaixo para compilar e iniciar o serviço:
+
+mvn clean install
+mvn spring-boot:run
