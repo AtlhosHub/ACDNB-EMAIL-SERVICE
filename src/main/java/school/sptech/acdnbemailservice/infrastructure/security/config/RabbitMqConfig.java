@@ -16,9 +16,17 @@ public class RabbitMqConfig {
     @Value("${app.rabbitmq.queue}")
     private String queueName;
 
+    @Value("${app.rabbitmq.filapagamento}")
+    private String filaComprovante;
+
     @Bean
     public Queue filaComprovantes() {
         return new Queue(queueName, true);
+    }
+
+    @Bean
+    public Queue filaRespostaPagamento() {
+        return new Queue(filaComprovante, true);
     }
 
     @Bean
@@ -26,7 +34,21 @@ public class RabbitMqConfig {
         return new TopicExchange("exchange-comprovantes");
     }
 
+    @Bean
+    public TopicExchange exchangePagamentoRetorno() {
+        return new TopicExchange("exchange-pagamento-retorno");
+    }
+
     @Bean public Binding binding(Queue filaComprovantes, TopicExchange exchange) {
         return BindingBuilder.bind(filaComprovantes).to(exchange).with("#");
+    }
+
+    @Bean
+    public Binding bindingRespostaPagamento(Queue filaRespostaPagamento,
+                                            TopicExchange exchangePagamentoRetorno) {
+        return BindingBuilder
+                .bind(filaRespostaPagamento)
+                .to(exchangePagamentoRetorno)
+                .with("pagamento.retorno");
     }
 }
