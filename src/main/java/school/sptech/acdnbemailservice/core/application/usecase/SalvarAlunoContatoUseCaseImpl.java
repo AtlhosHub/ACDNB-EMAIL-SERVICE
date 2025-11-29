@@ -13,6 +13,12 @@ public class SalvarAlunoContatoUseCaseImpl implements SalvarAlunoContatoUseCase 
 
     @Override
     public void execute(EmailContatoDTO dto) {
-        gateway.salvarAluno(dto);
+        if ("CREATE".equals(dto.getOperacao())) {
+            gateway.salvarAluno(dto);
+        } else if ("UPDATE".equals(dto.getOperacao())) {
+            gateway.atualizarAluno(dto);
+        } else {
+            System.out.println("❌ Operação desconhecida: " + dto.getOperacao());
+        }
     }
 }

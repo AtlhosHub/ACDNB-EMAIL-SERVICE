@@ -29,8 +29,8 @@ public class AlunoContatoConsumer {
             System.out.println("📨 Mensagem recebida (raw): " + mensagemString);
 
             EmailContatoDTO dto = mapper.readValue(payload, EmailContatoDTO.class);
-            System.out.println("✅ Mensagem processada: " + dto.getNome() + " | " + dto.getEmail());
-
+            System.out.println("✅ Mensagem processada: "
+                    + dto.getNome() + " | " + dto.getEmail() + " | Operação: " + dto.getOperacao());
             salvarAlunoContatoUseCase.execute(dto);
 
         } catch (Exception e) {
