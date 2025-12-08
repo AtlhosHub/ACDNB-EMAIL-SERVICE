@@ -13,42 +13,27 @@ import org.springframework.context.annotation.Configuration;
 @EnableRabbit
 public class RabbitMqConfig {
 
-    @Value("${app.rabbitmq.queue}")
-    private String queueName;
+    private static final String EXCHANGE_EMAIL = "exchange-email";
+    private static final String ROUTING_KEY_EMAIL_RECUPERACAO = "email.recuperacao-senha";
 
-    @Value("${app.rabbitmq.filapagamento}")
-    private String filaComprovante;
+    @Value("${app.rabbitmq.queue.recuperacao-senha}")
+    private String filaRecuperacaoSenha;
 
     @Bean
-    public Queue filaComprovantes() {
-        return new Queue(queueName, true);
+    public Queue filaEmailRecuperacaoSenha() {
+        return new Queue(filaRecuperacaoSenha, true);
     }
 
     @Bean
-    public Queue filaRespostaPagamento() {
-        return new Queue(filaComprovante, true);
+    public TopicExchange exchangeEmail() {
+        return new TopicExchange(EXCHANGE_EMAIL);
     }
 
     @Bean
-    public TopicExchange exchange() {
-        return new TopicExchange("exchange-comprovantes");
-    }
-
-    @Bean
-    public TopicExchange exchangePagamentoRetorno() {
-        return new TopicExchange("exchange-pagamento-retorno");
-    }
-
-    @Bean public Binding binding(Queue filaComprovantes, TopicExchange exchange) {
-        return BindingBuilder.bind(filaComprovantes).to(exchange).with("#");
-    }
-
-    @Bean
-    public Binding bindingRespostaPagamento(Queue filaRespostaPagamento,
-                                            TopicExchange exchangePagamentoRetorno) {
+    public Binding bindingEmailRecuperacao() {
         return BindingBuilder
-                .bind(filaRespostaPagamento)
-                .to(exchangePagamentoRetorno)
-                .with("pagamento.retorno");
+                .bind(filaEmailRecuperacaoSenha())
+                .to(exchangeEmail())
+                .with(ROUTING_KEY_EMAIL_RECUPERACAO);
     }
 }
